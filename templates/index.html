@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A premium dashboard for monitoring, searching, and tweeting Google Cloud BigQuery release notes. Stay updated with the latest BigQuery changes.">
+    <title>BigQuery Release Sentinel</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="stars"></div>
+    <div class="glowing-orb orb-1"></div>
+    <div class="glowing-orb orb-2"></div>
+
+    <div class="app-container">
+        <!-- Header Section -->
+        <header class="app-header">
+            <div class="header-logo">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-database animate-pulse"></i>
+                    <div class="logo-ring"></div>
+                </div>
+                <div class="logo-text">
+                    <h1 id="app-title">BigQuery Release Sentinel</h1>
+                    <p class="subtitle">Real-time intelligence feed for Google Cloud BigQuery updates</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="last-updated-badge" id="last-updated-badge">
+                    <span class="dot"></span>
+                    <span id="last-updated-text">Not loaded</span>
+                </div>
+                <button id="btn-refresh" class="btn-refresh" title="Refresh Release Notes">
+                    <i class="fa-solid fa-arrows-rotate spinner-icon" id="refresh-icon"></i>
+                    <span>Refresh</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats Counter Dashboard -->
+        <section class="stats-dashboard" id="stats-dashboard">
+            <div class="stat-card">
+                <span class="stat-label">Total Days</span>
+                <span class="stat-value" id="stat-total-days">0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Total Updates</span>
+                <span class="stat-value" id="stat-total-updates">0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Features</span>
+                <span class="stat-value text-feature" id="stat-features">0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Announcements</span>
+                <span class="stat-value text-announcement" id="stat-announcements">0</span>
+            </div>
+        </section>
+
+        <!-- Search and Filters Section -->
+        <section class="filter-section">
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="search-input" placeholder="Search updates by feature, keywords, or date (e.g. 'embeddings', 'July 2026')..." autocomplete="off">
+                <button id="search-clear-btn" class="search-clear-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="filter-pills-container">
+                <span class="filter-pills-label"><i class="fa-solid fa-filter"></i> Category:</span>
+                <div class="filter-pills">
+                    <button class="filter-pill active" data-type="all" id="pill-all">All</button>
+                    <button class="filter-pill" data-type="feature" id="pill-feature">
+                        <span class="indicator badge-feature"></span>Feature
+                    </button>
+                    <button class="filter-pill" data-type="announcement" id="pill-announcement">
+                        <span class="indicator badge-announcement"></span>Announcement
+                    </button>
+                    <button class="filter-pill" data-type="deprecation" id="pill-deprecation">
+                        <span class="indicator badge-deprecation"></span>Deprecation
+                    </button>
+                    <button class="filter-pill" data-type="fix" id="pill-fix">
+                        <span class="indicator badge-fix"></span>Fix
+                    </button>
+                    <button class="filter-pill" data-type="other" id="pill-other">
+                        <span class="indicator badge-other"></span>Other
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Feed Grid -->
+        <main class="feed-layout">
+            <div id="loading-container" class="loading-container hidden">
+                <div class="loading-spinner"></div>
+                <p>Parsing feed & aligning telemetry...</p>
+            </div>
+
+            <div id="error-container" class="error-container hidden">
+                <i class="fa-solid fa-circle-exclamation error-icon"></i>
+                <h3>Failed to load release notes</h3>
+                <p id="error-message">Unknown error occurred.</p>
+                <button id="btn-retry" class="btn-retry">Retry Fetching</button>
+            </div>
+
+            <div id="feed-container" class="feed-container">
+                <!-- Date-based Release Cards will be injected here -->
+            </div>
+        </main>
+
+        <!-- Page Footer -->
+        <footer class="app-footer">
+            <p>BigQuery Release Sentinel &copy; 2026. Data fetched dynamically from Google Cloud Feeds.</p>
+            <p class="footer-links">
+                <a href="https://docs.cloud.google.com/feeds/bigquery-release-notes.xml" target="_blank" rel="noopener noreferrer">
+                    <i class="fa-solid fa-rss"></i> Original Feed XML
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <!-- Interactive Tweet Composer (Bottom Dock) -->
+    <div id="tweet-dock" class="tweet-dock">
+        <div class="tweet-dock-glow"></div>
+        <div class="tweet-dock-content">
+            <div class="tweet-dock-header">
+                <div class="dock-title">
+                    <i class="fa-brands fa-x-twitter"></i>
+                    <span>Tweet Composer</span>
+                </div>
+                <button id="btn-close-dock" class="btn-close-dock" title="Close Composer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="tweet-composer-body">
+                <div class="selected-meta">
+                    <span class="meta-label">Selected Update:</span>
+                    <span id="selected-item-info" class="meta-val">June 17, 2026 - Feature</span>
+                </div>
+                
+                <div class="textarea-wrapper">
+                    <textarea id="tweet-textarea" maxlength="280" placeholder="Compose your tweet..."></textarea>
+                    <div class="char-counter">
+                        <span id="char-count">0</span>/280
+                    </div>
+                </div>
+                
+                <div class="composer-actions">
+                    <button id="btn-reset-tweet" class="btn-reset" title="Reset to original text">
+                        <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+                    </button>
+                    <button id="btn-send-tweet" class="btn-send-tweet">
+                        <i class="fa-brands fa-x-twitter"></i> Tweet Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
